@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.io.FileWriter;
@@ -20,6 +21,10 @@ public class Serializer {
 	HashMap<Object, Integer> referenceMap = new HashMap<Object, Integer>();
 	private int referenceID = 0;
 	private Document docs = null;
+	
+	private ArrayList<Object> objList = new ArrayList<Object>();
+	private ArrayList<Character> charList = new ArrayList<Character>();
+	
 	public Document serialize(Object obj)
 	{
 		Class<?> classObject = obj.getClass();
@@ -35,54 +40,79 @@ public class Serializer {
 		objectElem.setAttribute(new Attribute("class", className));
 		objectElem.setAttribute(new Attribute("id", id.toString()));
 		
-		
+		System.out.println(classObject.isArray());
 		if(classObject.isArray())
 		{
-			/*Object anArray = obj;
-			objectElem.setAttribute(new Attribute("length", Integer.toString(Array.getLength(anArray))));
-			if(classObject.getComponentType().isPrimitive())
+			objectElem.setAttribute(new Attribute("length", Integer.toString(Array.getLength(obj))));
+			for(int i = 0; i < Array.getLength(obj); i++)
 			{
-				System.out.println(classObject.getComponentType());
-				for (int i = 0; i < Array.getLength(anArray); i++)
-				{
-					System.out.println(Array.get(anArray, i).toString());
-					objectElem.addContent(new Element("value").setText(Array.get(anArray, i).toString()));
-				}
-				//objectElem.addContent(new Element("value").setText(classObject.toString()));//Seems like it's null? from debug
+				objectElem.addContent(serialObject(obj, classObject, i));
 			}
-			else
-			{
-				System.out.println(Array.getLength(anArray));
-				for(int i = 0; i < Array.getLength(anArray); i++)
-				{
-					id = getObjID(Array.get(anArray, i));
-					System.out.println("id " + id);
-					objectElem.addContent(new Element("reference").setText(id.toString()));
-					
-					//objectElem.addContent(new Element("reference").setText(Integer.toString(getObjID(Array.get(anArray, i)))));
-					
-					for(int k = 0; k < Array.getLength(anArray); k++)
-					{
-						serialize(Array.get(anArray, k));
-					}
-				}
-			}*/
+			
 		}
 		else
 		{
 			Field[] list = classObject.getDeclaredFields();
 			for (int i = 0; i < list.length; i++)
-			{
-				serialField(list[i], obj, classObject, objectElem);
+			{	
+				objectElem.addContent(serialField(list[i], obj, classObject));
 			}
-			
 		}
 		
 		docs.getRootElement().addContent(objectElem);
 		return docs;
 	}
 	
-	private void serialField(Field field, Object obj, Class classObject, Element objectElem)
+	private Element serialObject(Object obj, Class classObject, int i)
+	{
+		Object anArray = obj;
+		Element value = new Element("value");
+		Element reference = new Element("reference");
+		Element temp = null;
+		if(classObject.getComponentType().isPrimitive())
+		{
+			System.out.println(classObject.getComponentType());
+			
+			value.setText(Array.get(anArray, i).toString());
+				
+			temp = value;
+			
+			
+			/*for (int i = 0; i < Array.getLength(anArray); i++)
+			{
+				Integer id = getObjID(obj);
+				System.out.println(Array.get(anArray, i).toString());
+				System.out.println("refID " + id.toString());
+				objList.add(Array.get(anArray, i));
+				System.out.println("in objList: " + objList.get(i).toString());
+				//objectElem.addContent(new Element("value").setText(Array.get(anArray, i).toString()));
+			}
+			addObjToDoc(anArray, objectElem);*/
+			//objList.clear();
+			//objectElem.addContent(new Element("value").setText(classObject.toString()));//Seems like it's null? from debug
+		}
+		else 
+		{
+			for(int j = 0; j < Array.getLength(anArray); j++)
+			{
+				//Integer id = getObjID(Array.get(anArray, j));
+				Integer id = getObjID(Array.get(anArray, j));
+				System.out.println("id " + id);
+				reference.setText(id.toString());
+				//objectElem.addContent(new Element("reference").setText(Integer.toString(getObjID(Array.get(anArray, i)))));
+				
+				for(int k = 0; k < Array.getLength(anArray); k++)
+				{
+					serialize(Array.get(anArray, k));
+				}
+				
+			}
+			temp = reference;
+		}
+		return temp;
+	}
+	
+	private Element serialField(Field field, Object obj, Class classObject)
 	{
 		Element newField = new Element("field");
 		try {
@@ -103,61 +133,48 @@ public class Serializer {
 			{
 				Integer id = getObjID(field.get(obj));
 				newField.addContent(new Element("reference").setText(id.toString()));
+				System.out.println(id.toString());
+				serialize(field.get(obj));
+				/*if(field.getType().getName() == "java.lang.String")
+				{
+					try {
+					System.out.println(field.get(obj));
+					System.out.println(field.getType().getName());
+					System.out.println("true");
+					for(char character: ((String) field.get(obj)).toCharArray())
+					{
+						System.out.println(character);
+						charList.add(character);
+					}
+					objectElem.setAttribute(new Attribute("length", Integer.toString(charList.size())));
+					for(int i = 0; i < charList.size(); i++){
+						newField.addContent(new Element("value").setText(charList.get(i).toString()));
+					}
+					//addCharToDoc(objectElem, newField);
+					
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				}*/
+				
+				
+				
+				
 			}
-			/*
-			Field[] listFields = classObject.getDeclaredFields();
-			Element field = new Element("field");
 			
-			for(int i = 0; i < listFields.length; i++)
-			{
-				listFields[i].setAccessible(true);
-				
-				field.setAttribute(new Attribute("name", listFields[i].getName()));
-				field.setAttribute(new Attribute("declaringclass", obj.getClass().getName()));
-				
-				if(listFields[i].getType().isPrimitive())
-				{
-					//Get value of a field and store its content as a value element
-					try {
-						field.addContent(new Element("value").setText(String.valueOf(listFields[i].get(obj))));
-					} catch (IllegalArgumentException e1) {
-						e1.printStackTrace();
-					} catch (IllegalAccessException e1) {
-						e1.printStackTrace();
-					}
-				}
-				
-				//When the field is not a primitive then it's an object so store its reference id
-				//and make it an object element. doesnt deal with arrays
-				else
-				{
-				/*	Integer objID;
-					Field oneField = listFields[i];
-					try {
-						objID = getObjID(listFields[i].get(obj));
-						field.addContent(new Element("reference").setText(objID.toString()));
-						serialize(oneField.get(obj));
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					//serializeObject(obj, classObject);
-					
-				}
-			}*/
 		} 
 		catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		objectElem.addContent(newField);
+		
+		//objectElem.addContent(newField);
+		return newField;
 	}
 	
 	public void writeXMLFile(Document docs)
