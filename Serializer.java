@@ -97,7 +97,9 @@ public class Serializer {
 			{
 				//Integer id = getObjID(Array.get(anArray, j));
 				Integer id = getObjID(Array.get(anArray, j));
-				System.out.println("id " + id);
+				System.out.println(Array.get(anArray, j).getClass().getName());
+				System.out.println("ref id " + referenceID);
+				System.out.println("id " + id.toString());
 				reference.setText(id.toString());
 				//objectElem.addContent(new Element("reference").setText(Integer.toString(getObjID(Array.get(anArray, i)))));
 				
@@ -106,6 +108,7 @@ public class Serializer {
 					serialize(Array.get(anArray, k));
 				}
 				
+
 			}
 			temp = reference;
 		}
@@ -203,12 +206,14 @@ public class Serializer {
 		if(referenceMap.containsKey(obj))
 		{
 			id = referenceMap.get(obj);
+			System.out.println(id);
 		}
 		else
 		{
 			referenceMap.put(obj, id);
 			referenceID++;
 		}
+		System.out.println("method id" + id);
 		return id;
 	}
 }
