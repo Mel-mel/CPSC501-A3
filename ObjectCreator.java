@@ -14,6 +14,7 @@ public class ObjectCreator {
 		makeObj();
 		Serializer serial = new Serializer();
 		Document docs = serial.serialize(obj);
+		Inspector inspector = new Inspector();
 		/*Element object = new Element("object");
 		for(int i = 0; i < serial.getObjList().size(); i++)
 		{
@@ -23,8 +24,8 @@ public class ObjectCreator {
 		docs.getRootElement().addContent(object);*/
 		serial.writeXMLFile(docs);
 		
-		Deserializer de = new Deserializer();
-		de.deserialize(docs);
+		Deserializer deserial = new Deserializer();
+		inspector.inspect(deserial.deserialize(docs), true);
 	}
 	
 	private static void makeObj()
