@@ -1,13 +1,17 @@
-
+/*
+ * Melissa Ta, CPSC 501, Assignment 3, UCID# 10110850
+ */
 public class Random {
-
-	public int num = 16;
-	//private int[] array = new int[10];
-	private int[] another = new int[2];
+	
+	private int ran, dom;
 	public Random(int num, int num2)
 	{
-		another[0] = num;
-		another[1] = num2;
+		ran = num;
+		dom = num2;
+	}
+	public Random()
+	{
+		
 	}
 	
 }

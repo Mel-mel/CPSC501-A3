@@ -1,13 +1,39 @@
+/*
+ * Melissa Ta, CPSC 501, Assignment 3, UCID# 10110850
+ */
 
 public class TempObject {
 
-	//public int number = 1;
-	//public int numer2 = 2;
-	//The string below is not a primitive, it's an array of char
-	//public long[] longArray = new long[5];
-	public Random[] random = {new Random(1, 2), new Random(3, 4), new Random(2, 1)};
-	//public Random ran = new Random();
-	private double aDouble = 45.0;
-	private float aFloat = 7;
-    private int val3=34;
+	private double aDouble = 98.7;
+	private float aFloat = 10;
+	private Random random = new Random();
+	private int[] intArray = new int[4];
+	private Random[] ranArr = {new Random(), new Random()};
+	public TempObject(int n, int m, int k, int j)
+	{
+		intArray[0] = n;
+		intArray[1] = m;
+		intArray[2] = k;
+		intArray[3] = j;
+	}
+	public TempObject(Random r, Random t)
+	{
+		ranArr[0] = r;
+		ranArr[1] = t;
+	}
+	public TempObject()
+	{
+		
+	}
+	
+	public TempObject(double d, float f)
+	{
+		aDouble = d;
+		aFloat = f;
+	}
+	public TempObject(Random r)
+	{
+		random = r;
+	}
 }
+
