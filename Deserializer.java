@@ -27,7 +27,8 @@ public class Deserializer {
 			Document document = saxbuild.build(xml);
 			Element root = document.getRootElement();
 			List list = root.getChildren("object");
-
+			
+			//Begin deserializing each object
 			for(int i = 0; i < list.size(); i++)
 			{
 				try {
@@ -50,6 +51,12 @@ public class Deserializer {
 							
 							String id = element.getAttributeValue("id");
 							refTable.put(obj, Integer.parseInt(id));
+							
+							List newList = element.getChildren();
+							for(int j = 0; j < newList.size(); j++)
+							{
+								
+							}
 						}
 						else
 						{
@@ -59,7 +66,7 @@ public class Deserializer {
 							String id = element.getAttributeValue("id");
 							refTable.put(obj, Integer.parseInt(id));
 							
-							
+							//Get field values and set them to their proper wrapper objects
 							List newList = element.getChildren();
 							System.out.println(newList.size());
 							for(int j = 0; j < newList.size(); j++)
@@ -67,44 +74,34 @@ public class Deserializer {
 								Element fieldElem = (Element) newList.get(j);
 								String fieldClass = fieldElem.getAttributeValue("declaringclass");
 								System.out.println(fieldClass);
-								Class classObj = Class.forName(fieldClass);//Load dynamically?
+								Class classObj = Class.forName(fieldClass);
 								String fieldName = fieldElem.getAttributeValue("name");
 
-								if(fieldClass == null)
-								{
-									//skip. most likely an array of primitives
-									//String fieldName = fieldElem.getAttributeValue("name");
-								}
-								else
-								{
 
-									try {
-										Field initfield = classObj.getDeclaredField(fieldName);
-							
-										if(!initfield.isAccessible())
-										{
-											initfield.setAccessible(true);
-										}
-										String xmlField = fieldElem.getValue().trim();
-										//Get the unique id number of reference
-										System.out.println(fieldElem.getName());
-										if(fieldElem.getChildren().get(0).getName().equals("reference"))
-										{
-											Integer idNum = refTable.get(obj);
-											System.out.println("idnum " + idNum);
-										}
-										else
-										{
-											//Initializing and setting field values
-											initfield.set(obj, makeWrapper(xmlField, initfield));
-										}
-									} catch (NoSuchFieldException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									} catch (SecurityException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
+								try {
+									Field initfield = classObj.getDeclaredField(fieldName);
+						
+									if(!initfield.isAccessible())
+									{
+										initfield.setAccessible(true);
 									}
+									String xmlField = fieldElem.getValue().trim();
+									
+									//Get the unique id number of reference to find in the refTable.
+									//Isn't complete...
+									if(fieldElem.getChildren().get(0).getName().equals("reference"))
+									{
+										Integer idNum = refTable.get(obj);
+									}
+									else
+									{
+										//Initializing and setting field values
+										initfield.set(obj, makeWrapper(xmlField, initfield));
+									}
+								} catch (NoSuchFieldException e) {
+									e.printStackTrace();
+								} catch (SecurityException e) {
+									e.printStackTrace();
 								}
 							}
 						}
@@ -114,7 +111,6 @@ public class Deserializer {
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
 					}
-					//System.out.println(classObject.getName());
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				}			}
@@ -123,13 +119,13 @@ public class Deserializer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-
+		
 		return obj;
 	}
 
 
-	//Method to make a wrapper object and returns it. Considers all primitive types
+	//Method to make a wrapper object and returns it. Considers all primitive types.
+	//Returns a wrapped object of xmlFieldstr depending on the field type given.
 	private Object makeWrapper(String xmlFieldstr, Field field)
 	{
 		if(field.getType().getName().equals("double") == true || field.getType().getName().equals("Double") == true)

@@ -25,6 +25,10 @@ public class Serializer {
 	private ArrayList<Object> objList = new ArrayList<Object>();
 	private ArrayList<Character> charList = new ArrayList<Character>();
 	
+	//Serial an object. Takes object turns it into an xml file. Creates an id number to identity each object.
+	//Each object will be serialized and any fields in it will be serialized as well. If those fields are 
+	//objects themselves then they will be recursively go through this method again to check any of its
+	//fields and serialize those if any.
 	public Document serialize(Object obj)
 	{
 		Class<?> classObject = obj.getClass();
@@ -41,6 +45,8 @@ public class Serializer {
 		objectElem.setAttribute(new Attribute("id", id.toString()));
 		
 		System.out.println(classObject.isArray());
+		
+		//Check if the classObject is an array
 		if(classObject.isArray())
 		{
 			objectElem.setAttribute(new Attribute("length", Integer.toString(Array.getLength(obj))));
@@ -50,6 +56,7 @@ public class Serializer {
 			}
 			
 		}
+		//When the classObject is not an array
 		else
 		{
 			Field[] list = classObject.getDeclaredFields();
@@ -59,16 +66,21 @@ public class Serializer {
 			}
 		}
 		
+		//Add content of an object to docs
 		docs.getRootElement().addContent(objectElem);
 		return docs;
 	}
 	
+	//Serialize an object, add content to the doc if it's a value or a reference.
+	//Returns added content afterwards.
 	private Element serialObject(Object obj, Class classObject, int i)
 	{
 		Object anArray = obj;
 		Element value = new Element("value");
 		Element reference = new Element("reference");
 		Element temp = null;
+		
+		//When the object is some primitive, add content under "value"
 		if(classObject.getComponentType().isPrimitive())
 		{
 			System.out.println(classObject.getComponentType());
@@ -77,31 +89,15 @@ public class Serializer {
 				
 			temp = value;
 			
-			
-			/*for (int i = 0; i < Array.getLength(anArray); i++)
-			{
-				Integer id = getObjID(obj);
-				System.out.println(Array.get(anArray, i).toString());
-				System.out.println("refID " + id.toString());
-				objList.add(Array.get(anArray, i));
-				System.out.println("in objList: " + objList.get(i).toString());
-				//objectElem.addContent(new Element("value").setText(Array.get(anArray, i).toString()));
-			}
-			addObjToDoc(anArray, objectElem);*/
-			//objList.clear();
-			//objectElem.addContent(new Element("value").setText(classObject.toString()));//Seems like it's null? from debug
 		}
+		//When object is not a primitive, add reference id under "reference" since it's most likely an object.
+		//The object already has a unique id number
 		else 
 		{
 			for(int j = 0; j < Array.getLength(anArray); j++)
 			{
-				//Integer id = getObjID(Array.get(anArray, j));
 				Integer id = getObjID(Array.get(anArray, j));
-				System.out.println(Array.get(anArray, j).getClass().getName());
-				System.out.println("ref id " + referenceID);
-				System.out.println("id " + id.toString());
 				reference.setText(id.toString());
-				//objectElem.addContent(new Element("reference").setText(Integer.toString(getObjID(Array.get(anArray, i)))));
 				
 				for(int k = 0; k < Array.getLength(anArray); k++)
 				{
@@ -115,6 +111,8 @@ public class Serializer {
 		return temp;
 	}
 	
+	//Serialize fields with it's name and declaring class. If it's a primitive then just set it's value
+	//to "value". If it's an object, then get the reference id of object and set content to "reference"
 	private Element serialField(Field field, Object obj, Class classObject)
 	{
 		Element newField = new Element("field");
@@ -123,13 +121,13 @@ public class Serializer {
 			{
 				field.setAccessible(true);
 			}
+			//Setting attributes for xml document
 			newField.setAttribute(new Attribute("name", field.getName()));
 			newField.setAttribute(new Attribute("declaringclass", obj.getClass().getName()));
+			
 			if(field.getType().isPrimitive())
 			{
-				
-					String str = String.valueOf(field.get(obj));
-				
+				String str = String.valueOf(field.get(obj));
 				newField.addContent(new Element("value").setText(str));
 			}
 			else
@@ -138,6 +136,8 @@ public class Serializer {
 				newField.addContent(new Element("reference").setText(id.toString()));
 				System.out.println(id.toString());
 				serialize(field.get(obj));
+				
+				//This part below was an attempt to work with a 'String'. Doesnt work though
 				/*if(field.getType().getName() == "java.lang.String")
 				{
 					try {
@@ -176,10 +176,10 @@ public class Serializer {
 			e.printStackTrace();
 		}
 		
-		//objectElem.addContent(newField);
 		return newField;
 	}
 	
+	//A method to write an .xml file into storage space. Mostly likely on the D drive
 	public void writeXMLFile(Document docs)
 	{
 		try {
